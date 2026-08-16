@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoMask AI - Car Background Removal & Segmentation</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #08080c;
+            --card-bg: rgba(20, 20, 30, 0.45);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-primary: #00f0ff;
+            --accent-secondary: #bd00ff;
+            --text-main: #f3f3f6;
+            --text-muted: #8d8fa3;
+            --glow-cyan: rgba(0, 240, 255, 0.2);
+            --glow-purple: rgba(189, 0, 255, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(189, 0, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.05) 0%, transparent 40%);
+        }
+
+        h1, h2, h3, .brand {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+        }
+
+        /* Header / Navbar */
+        header {
+            width: 100%;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(8, 8, 12, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, #0099ff 50%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+        }
+
+        .brand i {
+            -webkit-text-fill-color: var(--accent-primary);
+            text-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        .header-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .header-links a:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Main Layout */
+        main {
+            flex: 1;
+            max-width: 1300px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Card panels */
+        .panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .panel:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .panel-title {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .panel-title i {
+            color: var(--accent-primary);
+        }
+
+        .panel-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Dropzone Upload */
+        .dropzone {
+            width: 100%;
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(255, 255, 255, 0.01);
+            overflow: hidden;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--accent-primary);
+            background: rgba(0, 240, 255, 0.03);
+            box-shadow: 0 0 20px var(--glow-cyan);
+            transform: scale(1.01);
+        }
+
+        .dropzone-icon {
+            font-size: 2.5rem;
+            color: var(--accent-primary);
+            margin-bottom: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .dropzone:hover .dropzone-icon {
+            transform: translateY(-5px);
+        }
+
+        .dropzone-text {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .dropzone-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Mode Selectors */
+        .control-group {
+            margin-top: 2rem;
+        }
+
+        .control-label {
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.4rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(189, 0, 255, 0.15) 100%);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            color: var(--accent-primary);
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1);
+        }
+
+        /* Action Buttons */
+        .submit-btn {
+            width: 100%;
+            margin-top: 2.5rem;
+            background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            border: none;
+            padding: 1.1rem;
+            border-radius: 12px;
+            color: #000;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(0, 240, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0, 240, 255, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .submit-btn:disabled {
+            background: #202025;
+            color: var(--text-muted);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results Panel */
+        .result-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 400px;
+            justify-content: center;
+        }
+
+        .placeholder-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .placeholder-box i {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.3;
+        }
+
+        /* Image Display Grid */
+        .image-viewer {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .image-card {
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .image-card-title {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            z-index: 10;
+        }
+
+        .image-display {
+            width: 100%;
+            display: block;
+            max-height: 380px;
+            object-fit: contain;
+            background-image: 
+                linear-gradient(45deg, #111 25%, transparent 25%), 
+                linear-gradient(-45deg, #111 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #111 75%), 
+                linear-gradient(-45deg, transparent 75%, #111 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
+        /* Spinner / Loading Loader */
+        .loader-box {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            text-align: center;
+        }
+
+        .spinner-ring {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: relative;
+            background: conic-gradient(from 0deg, transparent 30%, var(--accent-primary) 100%);
+            animation: spin 1s linear infinite;
+            mask: radial-gradient(circle, transparent 35px, #000 35px);
+            -webkit-mask: radial-gradient(circle, transparent 35px, #000 35px);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+
+        .spinner-ring::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 36px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .loader-subtext {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: -0.8rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Footer */
+        footer {
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
+
+        /* Utility classes */
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> AutoMask AI
+        </div>
+        <div class="header-links">
+            <a href="https://github.com" target="_blank"><i class="fa-brands fa-github"></i> SegFormer-B2 Segmentation</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Left Column: Controls & Upload -->
+        <div class="panel">
+            <h2 class="panel-title"><i class="fa-solid fa-circle-nodes"></i> Model Inputs</h2>
+            <p class="panel-subtitle">Upload a vehicle image and select the target segmentation output mode.</p>
+            
+            <div class="dropzone" id="dropzone">
+                <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                <div class="dropzone-text" id="dropzone-prompt">Drag & Drop car image here</div>
+                <div class="dropzone-sub">or click to select file (PNG, JPG)</div>
+                <input type="file" id="file-input" accept="image/*">
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Visualization Output Option</label>
+                <div class="mode-selector">
+                    <button class="mode-btn active" id="mode-overlay" onclick="setMode('overlay')">
+                        <i class="fa-solid fa-layer-group"></i> Mask Overlay
+                    </button>
+                    <button class="mode-btn" id="mode-cutout" onclick="setMode('cutout')">
+                        <i class="fa-solid fa-scissors"></i> Cutout Car
+                    </button>
+                </div>
+            </div>
+
+            <button class="submit-btn" id="submit-btn" onclick="processImage()" disabled>
+                <i class="fa-solid fa-gears"></i> Extract Background Mask
+            </button>
+        </div>
+
+        <!-- Right Column: Interactive Results -->
+        <div class="panel">
+            <div class="result-container" id="result-container">
+                <!-- State A: Placeholder -->
+                <div class="placeholder-box" id="placeholder-box">
+                    <i class="fa-regular fa-image"></i>
+                    <h3>No Result Ready</h3>
+                    <p style="font-size: 0.85rem; max-width: 250px; margin-top: 0.5rem; line-height: 1.4;">
+                        Upload a photo of a car and run the extraction to visualize results.
+                    </p>
+                </div>
+
+                <!-- State B: Loader -->
+                <div class="loader-box" id="loader-box">
+                    <div class="spinner-ring"></div>
+                    <div class="loader-text">AI Model Processing</div>
+                    <div class="loader-subtext" id="loader-status">Running SegFormer-B2 segmentation forward pass...</div>
+                </div>
+
+                <!-- State C: Image Viewers -->
+                <div class="image-viewer" id="image-viewer">
+                    <div class="image-card">
+                        <div class="image-card-title" id="output-label">Processed Output</div>
+                        <img id="output-image" class="image-display" src="" alt="Output Visualization">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        AutoMask AI — Powered by SegFormer-B2 & Transformers.
+    </footer>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const placeholderBox = document.getElementById('placeholder-box');
+        const loaderBox = document.getElementById('loader-box');
+        const imageViewer = document.getElementById('image-viewer');
+        const outputImage = document.getElementById('output-image');
+        const outputLabel = document.getElementById('output-label');
+        const dropzonePrompt = document.getElementById('dropzone-prompt');
+        const loaderStatus = document.getElementById('loader-status');
+
+        let selectedFile = null;
+        let currentMode = 'overlay'; // 'overlay' or 'cutout'
+        let apiResponse = null; // Stores both base64 images
+
+        // Upload Zone interaction
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFileSelect(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            selectedFile = file;
+            dropzonePrompt.textContent = file.name;
+            submitBtn.disabled = false;
+            
+            // Clear past results
+            apiResponse = null;
+            placeholderBox.style.display = 'flex';
+            imageViewer.style.display = 'none';
+            loaderBox.style.display = 'none';
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('mode-overlay').classList.toggle('active', mode === 'overlay');
+            document.getElementById('mode-cutout').classList.toggle('active', mode === 'cutout');
+            
+            // Update display if we already have the processed results loaded
+            if (apiResponse) {
+                updateImageDisplay();
+            }
+        }
+
+        function updateImageDisplay() {
+            if (currentMode === 'overlay') {
+                outputImage.src = apiResponse.overlay;
+                outputLabel.textContent = "Mask Overlay (Cyan 50% Opacity)";
+            } else {
+                outputImage.src = apiResponse.cutout;
+                outputLabel.textContent = "Extracted Car cutout (Transparent BG)";
+            }
+        }
+
+        function processImage() {
+            if (!selectedFile) return;
+
+            // Update UI State to Loading
+            placeholderBox.style.display = 'none';
+            imageViewer.style.display = 'none';
+            loaderBox.style.display = 'flex';
+            submitBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            const statusStages = [
+                "Loading SegFormer-B2 checkpoint weights...",
+                "Running vision backbone patch extraction...",
+                "Decoding segmentation logits...",
+                "Refining high-resolution mask boundary overlays...",
+                "Constructing transparent alpha channels..."
+            ];
+
+            let stageIdx = 0;
+            const statusInterval = setInterval(() => {
+                stageIdx = (stageIdx + 1) % statusStages.length;
+                loaderStatus.textContent = statusStages[stageIdx];
+            }, 2500);
+
+            fetch('/api/process', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error("HTTP error " + res.status);
+                }
+                return res.json();
+            })
+            .then(data => {
+                clearInterval(statusInterval);
+                if (data.error) {
+                    alert("Inference Error: " + data.error);
+                    resetUI();
+                } else {
+                    apiResponse = data;
+                    loaderBox.style.display = 'none';
+                    imageViewer.style.display = 'flex';
+                    updateImageDisplay();
+                }
+            })
+            .catch(err => {
+                clearInterval(statusInterval);
+                alert("Request failed: " + err.message);
+                resetUI();
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+            });
+        }
+
+        function resetUI() {
+            placeholderBox.style.display = 'flex';
+            loaderBox.style.display = 'none';
+            imageViewer.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

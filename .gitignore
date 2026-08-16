@@ -1,0 +1,67 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment & local secrets
+.env
+.env.local
+.venv
+env/
+venv/
+ENV/
+.commandcode/
+
+# macOS / OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Datasets and archives (kept locally only)
+data/
+dataset/
+Archive/
+Archive.zip
+annotations/
+annotations.zip
+processed_dataset_clean/
+processed_dataset/
+interior_dataset/
+car_background_removal_v2/
+inspect_sample/
+*.parquet
+*.npy
+*.zip
+*.tar.gz
+
+# Data download and local data processing scripts
+download_dataset.py
+download_v2.py
+convert_to_coco.py
+label_images.py
+preprocess.py
+train_rfdetr.py
+
+# Scraped metadata & JSON data files
+scraped_images.json
+scraped_images_2.json
+labels.json
+
+# Large trained weights & checkpoints
+runs/
+weights/
+*.pth
+*.safetensors
+*.ckpt
+*.onnx
+*.bin
+
+# Logs and scratch files
+*.log
+runs/*.log
+.cache/
