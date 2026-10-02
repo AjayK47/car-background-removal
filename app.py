@@ -11,12 +11,13 @@ from safetensors.torch import load_file
 
 app = Flask(__name__)
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Loading fine-tuned BiRefNet model weights from runs/birefnet_car/best on device: {device}...")
+MODEL_PATH = os.environ.get("MODEL_PATH", "runs/birefnet_car/best/model.safetensors")
+device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+print(f"Loading fine-tuned BiRefNet model weights from {MODEL_PATH} on device: {device}...")
 model = AutoModelForImageSegmentation.from_pretrained(
     "ZhengPeng7/BiRefNet", trust_remote_code=True
 ).to(device)
-weights = load_file("runs/birefnet_car/best/model.safetensors")
+weights = load_file(MODEL_PATH)
 model.load_state_dict(weights)
 model = model.float()
 model.eval()

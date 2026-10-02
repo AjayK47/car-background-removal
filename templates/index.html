@@ -421,7 +421,7 @@
             <i class="fa-solid fa-wand-magic-sparkles"></i> AutoMask AI
         </div>
         <div class="header-links">
-            <a href="https://github.com" target="_blank"><i class="fa-brands fa-github"></i> SegFormer-B2 Segmentation</a>
+            <a href="https://huggingface.co/ZhengPeng7/BiRefNet" target="_blank" rel="noreferrer"><i class="fa-solid fa-link"></i> BiRefNet Segmentation</a>
         </div>
     </header>
 
@@ -471,7 +471,7 @@
                 <div class="loader-box" id="loader-box">
                     <div class="spinner-ring"></div>
                     <div class="loader-text">AI Model Processing</div>
-                    <div class="loader-subtext" id="loader-status">Running SegFormer-B2 segmentation forward pass...</div>
+                    <div class="loader-subtext" id="loader-status">Running BiRefNet segmentation forward pass...</div>
                 </div>
 
                 <!-- State C: Image Viewers -->
@@ -577,7 +577,7 @@
             formData.append('image', selectedFile);
 
             const statusStages = [
-                "Loading SegFormer-B2 checkpoint weights...",
+                "Loading BiRefNet checkpoint weights...",
                 "Running vision backbone patch extraction...",
                 "Decoding segmentation logits...",
                 "Refining high-resolution mask boundary overlays...",
