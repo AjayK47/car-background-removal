@@ -6,12 +6,17 @@ from PIL import Image
 from flask import Flask, request, jsonify, render_template
 import torch
 from transformers import AutoModelForImageSegmentation
+from huggingface_hub import hf_hub_download
 
 from safetensors.torch import load_file
 
 app = Flask(__name__)
 
-MODEL_PATH = os.environ.get("MODEL_PATH", "runs/birefnet_car/best/model.safetensors")
+MODEL_REPOSITORY = "Ajayk/car-background-removal-birefnet"
+MODEL_PATH = os.environ.get("MODEL_PATH") or hf_hub_download(
+    repo_id=MODEL_REPOSITORY,
+    filename="model.safetensors",
+)
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 print(f"Loading fine-tuned BiRefNet model weights from {MODEL_PATH} on device: {device}...")
 model = AutoModelForImageSegmentation.from_pretrained(

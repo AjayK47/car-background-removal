@@ -8,13 +8,13 @@ Local Flask application for generating a car mask overlay and transparent-backgr
 - `templates/index.html`: browser UI.
 - Training scripts used to fine-tune the car segmentation model.
 
-The custom checkpoint is intentionally **not** included in this repository. It is approximately 844 MiB and must be shared separately by the repository owner.
+The custom checkpoint is intentionally **not** included in this repository. It is approximately 844 MiB and is downloaded automatically from [Ajayk/car-background-removal-birefnet](https://huggingface.co/Ajayk/car-background-removal-birefnet) on first run.
 
 ## Requirements
 
 - Python 3.12
 - macOS, Linux, or Windows
-- A copy of the fine-tuned `model.safetensors` checkpoint
+- Internet access for the first run, to download the fine-tuned `model.safetensors` checkpoint
 
 Apple Silicon Macs use Metal Performance Shaders (MPS) automatically. CUDA is used automatically when available; otherwise the app runs on CPU.
 
@@ -28,13 +28,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Download or copy the custom checkpoint to:
-
-```text
-runs/birefnet_car/best/model.safetensors
-```
-
-Alternatively, put it elsewhere and set `MODEL_PATH` before starting the app:
+The app downloads and caches the fine-tuned checkpoint automatically on first run. To use a checkpoint you already have locally, set `MODEL_PATH` instead:
 
 ```bash
 MODEL_PATH=/absolute/path/to/model.safetensors python app.py
@@ -60,6 +54,6 @@ The response contains data-URL encoded `original`, `overlay`, and `cutout` PNGs.
 
 ## Model Distribution
 
-Share the custom checkpoint through a private Hugging Face model repository, GitHub Release, Google Drive, or another access-controlled file store. Do not commit it directly to Git: `model.safetensors` is intentionally excluded by `.gitignore`.
+The checkpoint is published at [Ajayk/car-background-removal-birefnet](https://huggingface.co/Ajayk/car-background-removal-birefnet). Do not commit model weights directly to Git: `model.safetensors` is intentionally excluded by `.gitignore`.
 
 Before distributing the checkpoint outside your team, review the licenses for the base BiRefNet model and the training data used for fine-tuning.
